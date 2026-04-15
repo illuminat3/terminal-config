@@ -92,7 +92,14 @@ $env:pwshConfig = [System.Environment]::GetEnvironmentVariable('pwshConfig', 'Us
 if (Test-Path $PROFILE) {
     $existing = Get-Content $PROFILE -Raw -ErrorAction SilentlyContinue
     if ($existing -match '# Terminal config') {
-        Write-Host "Profile : already bootstrapped — $PROFILE" -ForegroundColor Cyan
+        if ($existing -match [regex]::Escape('. (Join-Path $env:pwshConfig ''profile.ps1'')')) {
+            Write-Host "Profile : already bootstrapped — $PROFILE" -ForegroundColor Cyan
+        } else {
+            # Stale bootstrap (e.g. old '$Profile' reference) — replace it
+            $updated = $existing -replace "(?m)# Terminal config — managed by install\.ps1\r?\n.*\r?\n.*(\r?\n)?", ''
+            Set-Content -Path $PROFILE -Value ($updated.TrimEnd() + "`n`n$bootstrap`n")
+            Write-Host "Repaired: $PROFILE (updated stale bootstrap block)" -ForegroundColor Yellow
+        }
     } else {
         Add-Content -Path $PROFILE -Value "`n$bootstrap"
         Write-Host "Updated : $PROFILE" -ForegroundColor Green
