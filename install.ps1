@@ -80,13 +80,13 @@ if (-not (Test-Path $profileDir)) {
     New-Item -ItemType Directory -Path $profileDir -Force | Out-Null
 }
 
-# Single-quoted here-string: nothing is expanded — the literals $env:pwshConfig
-# and '$Profile' appear verbatim in the generated file, which is exactly what
-# we want so they evaluate at shell startup, not at install time.
+# Single-quoted here-string: nothing is expanded — the literal $env:pwshConfig
+# appears verbatim in the generated file, which is exactly what we want so it
+# evaluates at shell startup, not at install time.
 $bootstrap = @'
 # Terminal config — managed by install.ps1
 $env:pwshConfig = [System.Environment]::GetEnvironmentVariable('pwshConfig', 'User')
-. (Join-Path $env:pwshConfig '$Profile')
+. (Join-Path $env:pwshConfig 'profile.ps1')
 '@
 
 if (Test-Path $PROFILE) {
